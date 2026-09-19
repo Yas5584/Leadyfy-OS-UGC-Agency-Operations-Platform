@@ -268,9 +268,16 @@ export default function ShootsPage() {
 
               <div className="pt-3 border-t border-gray-100 flex justify-between items-center text-[11px]">
                 <span className="text-gray-400">Order #{shoot.orderId?.substring(0, 6)}</span>
-                <span className="font-semibold text-amber-600 flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedShoot(shoot);
+                  }}
+                  className="font-semibold text-amber-600 hover:text-amber-700 flex items-center gap-1 cursor-pointer transition-colors"
+                >
                   View Logistics <Eye className="w-3.5 h-3.5" />
-                </span>
+                </button>
               </div>
             </Card>
           ))}
