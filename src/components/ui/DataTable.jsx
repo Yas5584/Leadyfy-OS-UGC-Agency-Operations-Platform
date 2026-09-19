@@ -23,7 +23,7 @@ export default function DataTable({
 
   return (
     <div className="w-full bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto scrollbar-table">
         <table className="w-full text-left text-sm text-gray-600">
           <thead className="bg-gray-50 text-gray-900 border-b border-gray-200 text-xs uppercase tracking-wider font-semibold">
             <tr>

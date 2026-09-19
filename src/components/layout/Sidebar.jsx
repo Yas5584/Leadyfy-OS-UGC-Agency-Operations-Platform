@@ -99,7 +99,7 @@ export default function Sidebar({ collapsed, onToggle }) {
       </div>
 
       {/* Navigation */}
-      <div className="flex-1 overflow-y-auto py-3 scrollbar-thin scrollbar-thumb-white/10">
+      <div className="flex-1 overflow-y-auto py-3 scrollbar-dark">
         {navGroups.map((group, i) => {
           const visibleItems = group.items.filter(item => canAccess(role, item.resource));
           if (visibleItems.length === 0) return null;

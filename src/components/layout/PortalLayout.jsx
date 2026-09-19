@@ -45,7 +45,7 @@ export default function PortalLayout() {
         <div className="h-16 flex items-center px-6 border-b border-gray-800">
           <h1 className="text-lg font-bold text-white">Client Portal</h1>
         </div>
-        <nav className="flex-1 overflow-y-auto py-4">
+        <nav className="flex-1 overflow-y-auto py-4 scrollbar-dark">
           <ul className="space-y-1">
             {navItems.map(item => (
               <li key={item.path}>
