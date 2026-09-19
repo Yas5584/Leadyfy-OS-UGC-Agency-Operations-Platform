@@ -24,6 +24,8 @@ import EmployeesPage from './pages/admin/EmployeesPage';
 import ActivityLogsPage from './pages/admin/ActivityLogsPage';
 import ReportsPage from './pages/reports/ReportsPage';
 import SettingsPage from './pages/settings/SettingsPage';
+import RolesPermissionsPage from './pages/admin/RolesPermissionsPage';
+import EditorDashboard from './pages/editor/EditorDashboard';
 
 // Portal pages
 import PortalDashboard from './pages/portal/PortalDashboard';
@@ -60,6 +62,7 @@ function App() {
             <Route path="creators/:id" element={<CreatorDetailPage />} />
             <Route path="shoots" element={<ShootsPage />} />
             <Route path="videos" element={<VideosPage />} />
+            <Route path="editor-dashboard" element={<EditorDashboard />} />
             <Route path="tasks" element={<TasksPage />} />
             <Route path="payments" element={<PaymentsPage />} />
             <Route path="expenses" element={<ExpensesPage />} />
@@ -69,6 +72,7 @@ function App() {
             <Route path="employees" element={<EmployeesPage />} />
             <Route path="activity-logs" element={<ActivityLogsPage />} />
             <Route path="reports" element={<ReportsPage />} />
+            <Route path="roles-permissions" element={<RolesPermissionsPage />} />
             <Route path="settings" element={<SettingsPage />} />
           </Route>
 

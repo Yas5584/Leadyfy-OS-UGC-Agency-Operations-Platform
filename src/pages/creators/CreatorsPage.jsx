@@ -16,7 +16,7 @@ export default function CreatorsPage() {
   
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [formData, setFormData] = useState({ name: '', gender: '', ageGroup: '', languages: '', location: '', niches: '', phone: '', email: '', ratePerVideo: '' });
+  const [formData, setFormData] = useState({ name: '', gender: '', ageGroup: '', languages: '', location: '', niches: '', phone: '', email: '', ratePerVideo: '', photo: '', demographics: '', whatsapp: '', bankDetails: '', upiId: '', portfolioLinks: '' });
 
   useEffect(() => {
     fetchCreators();
@@ -39,7 +39,12 @@ export default function CreatorsPage() {
     if (isSubmitting) return;
     setIsSubmitting(true);
     try {
-      await creatorService.create({...formData, niches: formData.niches.split(','), languages: formData.languages.split(',')});
+      await creatorService.create({
+        ...formData, 
+        niches: formData.niches ? formData.niches.split(',').map(s => s.trim()).filter(Boolean) : [], 
+        languages: formData.languages ? formData.languages.split(',').map(s => s.trim()).filter(Boolean) : [],
+        portfolioLinks: formData.portfolioLinks ? formData.portfolioLinks.split(',').map(s => s.trim()).filter(Boolean) : []
+      });
       showToast('Creator added successfully', 'success');
       setIsAddOpen(false);
       fetchCreators();
@@ -105,22 +110,48 @@ export default function CreatorsPage() {
           <div className="space-y-4">
             <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Basic Information</h3>
             <FormField label="Name *" required><Input value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} required /></FormField>
+            <FormField label="Photo URL"><Input value={formData.photo} onChange={e => setFormData({...formData, photo: e.target.value})} placeholder="https://..." /></FormField>
             <FormField label="Location"><Input value={formData.location} onChange={e => setFormData({...formData, location: e.target.value})} placeholder="e.g. Mumbai, Delhi, Bangalore" /></FormField>
+            <div className="grid grid-cols-2 gap-4">
+              <FormField label="Gender">
+                <Select value={formData.gender} onChange={e => setFormData({...formData, gender: e.target.value})}>
+                  <option value="">Select Gender</option>
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                  <option value="Non-Binary">Non-Binary</option>
+                  <option value="Other">Other</option>
+                </Select>
+              </FormField>
+              <FormField label="Age Group">
+                <Select value={formData.ageGroup} onChange={e => setFormData({...formData, ageGroup: e.target.value})}>
+                  <option value="">Select Age Group</option>
+                  <option value="18-25">18-25</option>
+                  <option value="25-35">25-35</option>
+                  <option value="35-45">35-45</option>
+                  <option value="45+">45+</option>
+                </Select>
+              </FormField>
+            </div>
             <div className="grid grid-cols-2 gap-4">
               <FormField label="Email"><Input type="email" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} /></FormField>
               <FormField label="Phone"><Input value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} /></FormField>
+              <FormField label="WhatsApp"><Input value={formData.whatsapp} onChange={e => setFormData({...formData, whatsapp: e.target.value})} /></FormField>
             </div>
           </div>
           
           <div className="space-y-4">
             <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Creator Profile</h3>
+            <FormField label="Demographics"><Input value={formData.demographics} onChange={e => setFormData({...formData, demographics: e.target.value})} placeholder="e.g. Urban, Tier 1, Gen Z" /></FormField>
             <FormField label="Niches (comma separated)"><Input value={formData.niches} onChange={e => setFormData({...formData, niches: e.target.value})} /></FormField>
             <FormField label="Languages (comma separated)"><Input value={formData.languages} onChange={e => setFormData({...formData, languages: e.target.value})} /></FormField>
+            <FormField label="Portfolio Links (comma separated)"><Input value={formData.portfolioLinks} onChange={e => setFormData({...formData, portfolioLinks: e.target.value})} placeholder="https://..." /></FormField>
           </div>
           
           <div className="space-y-4">
-            <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Commercial</h3>
+            <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Commercial & Financial</h3>
             <FormField label="Rate Per Video"><Input type="number" value={formData.ratePerVideo} onChange={e => setFormData({...formData, ratePerVideo: e.target.value})} /></FormField>
+            <FormField label="Bank Details"><Input value={formData.bankDetails} onChange={e => setFormData({...formData, bankDetails: e.target.value})} placeholder="Account number, IFSC, Bank name" /></FormField>
+            <FormField label="UPI ID"><Input value={formData.upiId} onChange={e => setFormData({...formData, upiId: e.target.value})} placeholder="username@upi" /></FormField>
           </div>
 
           <div className="flex justify-end gap-3 pt-4 border-t">

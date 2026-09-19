@@ -99,7 +99,7 @@ export default function OrderDetailPage() {
       <Card className="p-6 border border-gray-200/80 shadow-sm bg-white">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
           <div>
-            <h2 className="text-base font-bold text-gray-900">Production Lifecycle & Quota</h2>
+            <h2 className="text-base font-bold text-gray-900">Live Production Counter</h2>
             <p className="text-xs text-gray-500">Live delivery metrics tracked against contracted quota</p>
           </div>
           <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-amber-50 text-amber-800 border border-amber-200">
@@ -111,7 +111,7 @@ export default function OrderDetailPage() {
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 p-4 rounded-xl bg-gray-50 border border-gray-100 text-center mb-5">
           <div className="p-2">
             <p className="text-[11px] font-semibold uppercase tracking-wider text-gray-400">Ordered</p>
-            <p className="text-2xl font-black text-gray-900 mt-1">{videoCount}</p>
+            <p className="text-2xl font-black text-amber-500 mt-1">{videoCount}</p>
           </div>
           <div className="p-2 border-l border-gray-200/60">
             <p className="text-[11px] font-semibold uppercase tracking-wider text-gray-400">Assigned</p>
@@ -127,7 +127,7 @@ export default function OrderDetailPage() {
           </div>
           <div className="p-2 border-l border-gray-200/60 col-span-2 sm:col-span-1">
             <p className="text-[11px] font-semibold uppercase tracking-wider text-gray-400">Remaining</p>
-            <p className="text-2xl font-black text-amber-600 mt-1">{remainingCount}</p>
+            <p className="text-2xl font-black text-gray-600 mt-1">{remainingCount}</p>
           </div>
         </div>
 

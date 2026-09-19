@@ -25,6 +25,10 @@ export default function ClientsPage() {
     contactName: '',
     email: '',
     phone: '',
+    whatsapp: '',
+    gstId: '',
+    source: '',
+    brandAssets: '',
     brandName: '',
     industry: 'E-commerce',
     assignedToId: '',
@@ -291,6 +295,47 @@ export default function ClientsPage() {
                   </option>
                 ))}
               </Select>
+            </FormField>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <FormField label="WhatsApp Number">
+              <Input
+                placeholder="+91 98765 43210"
+                value={formData.whatsapp}
+                onChange={(e) => setFormData({ ...formData, whatsapp: e.target.value })}
+              />
+            </FormField>
+            <FormField label="GST / Tax ID">
+              <Input
+                placeholder="GSTIN"
+                value={formData.gstId}
+                onChange={(e) => setFormData({ ...formData, gstId: e.target.value })}
+              />
+            </FormField>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <FormField label="Lead Source">
+              <Select
+                value={formData.source}
+                onChange={(e) => setFormData({ ...formData, source: e.target.value })}
+              >
+                <option value="">Select Source</option>
+                <option value="Referral">Referral</option>
+                <option value="Social Media">Social Media</option>
+                <option value="Cold Outreach">Cold Outreach</option>
+                <option value="Website">Website</option>
+                <option value="Partnership">Partnership</option>
+                <option value="Other">Other</option>
+              </Select>
+            </FormField>
+            <FormField label="Brand Assets / Kit URL">
+              <Input
+                placeholder="https://drive.google.com/..."
+                value={formData.brandAssets}
+                onChange={(e) => setFormData({ ...formData, brandAssets: e.target.value })}
+              />
             </FormField>
           </div>
 

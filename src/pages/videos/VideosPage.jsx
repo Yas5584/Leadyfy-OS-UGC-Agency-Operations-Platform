@@ -1,26 +1,28 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { 
-  Video, 
-  Clock, 
-  User, 
-  MessageSquare,
-  ChevronDown
+  Video, Clock, User, MessageSquare, ChevronDown, ExternalLink, 
+  FileText, Camera, CheckCircle2, Send, Eye, Link as LinkIcon
 } from 'lucide-react';
 import { videoService } from '../../services/api';
 import { useToast } from '../../context/ToastContext';
 import { VIDEO_PIPELINE_COLUMNS, getStatusLabel, STATUS_COLORS } from '../../utils/constants';
 import { formatDate } from '../../utils/formatters';
+import { Modal, Button, FormField, Input, Select, StatusBadge } from '../../components/ui';
 
 const VideosPage = () => {
   const [videos, setVideos] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [selectedVideo, setSelectedVideo] = useState(null);
+  const [deliveryModalVideo, setDeliveryModalVideo] = useState(null);
+  const [finalDeliveryLink, setFinalDeliveryLink] = useState('');
+  const [savingDelivery, setSavingDelivery] = useState(false);
+
   const { showToast, addToast } = useToast();
   const notify = showToast || addToast;
 
   const fetchVideos = async () => {
     try {
       setLoading(true);
-      // Fallback in case the method is named differently, commonly it's getVideos or getAll
       const response = typeof videoService.getVideos === 'function' 
         ? await videoService.getVideos() 
         : await videoService.getAll();
@@ -28,7 +30,6 @@ const VideosPage = () => {
       if (response && response.success) {
         setVideos(response.data);
       } else {
-        // If the structure is directly the data array or paginated
         setVideos(response?.data || response || []);
       }
     } catch (err) {
@@ -43,14 +44,51 @@ const VideosPage = () => {
     fetchVideos();
   }, []);
 
-  const handleStatusChange = async (id, newStatus) => {
+  const handleStatusChange = async (video, newStatus) => {
+    if (newStatus === 'DELIVERED' && !video.finalLink) {
+      // Prompt for final delivery link before marking delivered
+      setDeliveryModalVideo(video);
+      setFinalDeliveryLink('');
+      return;
+    }
+
     try {
-      await videoService.updateStatus(id, { status: newStatus });
-      if (notify) notify('Status updated successfully', 'success');
+      await videoService.updateStatus(video.id, { status: newStatus });
+      if (notify) notify(`Status moved to ${getStatusLabel(newStatus)}`, 'success');
       fetchVideos();
+      if (selectedVideo && selectedVideo.id === video.id) {
+        setSelectedVideo(prev => ({ ...prev, status: newStatus }));
+      }
     } catch (err) {
       console.error(err);
       if (notify) notify('Error updating status', 'error');
+    }
+  };
+
+  const handleConfirmDelivery = async (e) => {
+    e.preventDefault();
+    if (!deliveryModalVideo || !finalDeliveryLink.trim()) {
+      if (notify) notify('Final delivery Google Drive or Cloud link is required', 'error');
+      return;
+    }
+
+    try {
+      setSavingDelivery(true);
+      // Update link and status
+      await videoService.update(deliveryModalVideo.id, { 
+        finalLink: finalDeliveryLink.trim(),
+        deliveryDate: new Date().toISOString()
+      });
+      await videoService.updateStatus(deliveryModalVideo.id, { status: 'DELIVERED' });
+      
+      if (notify) notify('Video marked as DELIVERED with final cloud link!', 'success');
+      setDeliveryModalVideo(null);
+      setFinalDeliveryLink('');
+      fetchVideos();
+    } catch (err) {
+      if (notify) notify('Failed to complete delivery', 'error');
+    } finally {
+      setSavingDelivery(false);
     }
   };
 
@@ -79,7 +117,6 @@ const VideosPage = () => {
       if (cols[v.status]) {
         cols[v.status].items.push(v);
       } else if (VIDEO_PIPELINE_COLUMNS.length > 0) {
-        // Fallback for unknown status
         const firstCol = VIDEO_PIPELINE_COLUMNS[0].id;
         cols[firstCol].items.push(v);
       }
@@ -147,18 +184,22 @@ const VideosPage = () => {
                   </div>
                 ) : (
                   col.items.map(video => (
-                    <div key={video.id} className="group bg-white p-4 rounded-xl shadow-sm border border-gray-200 hover:shadow-md hover:border-indigo-200 transition-all duration-200">
-                      <div className="flex justify-between items-start mb-3">
+                    <div 
+                      key={video.id} 
+                      onClick={() => setSelectedVideo(video)}
+                      className="group bg-white p-4 rounded-xl shadow-sm border border-gray-200 hover:shadow-md hover:border-indigo-200 transition-all duration-200 cursor-pointer"
+                    >
+                      <div className="flex justify-between items-start mb-2.5">
                         <div className="pr-2">
                           <h4 className="font-bold text-gray-900 truncate max-w-[200px] leading-tight" title={video.client?.companyName}>
                             {video.client?.companyName || 'Unknown Client'}
                           </h4>
-                          <div className="flex items-center gap-2 mt-1">
+                          <div className="flex items-center gap-1.5 mt-1">
                             <span className="text-xs font-semibold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded">
                               #{video.videoNumber}
                             </span>
                             {video.order?.packageName && (
-                              <span className="text-xs text-gray-500 truncate max-w-[100px]" title={video.order.packageName}>
+                              <span className="text-xs text-gray-500 truncate max-w-[110px]" title={video.order.packageName}>
                                 {video.order.packageName}
                               </span>
                             )}
@@ -172,7 +213,31 @@ const VideosPage = () => {
                         )}
                       </div>
                       
-                      <div className="space-y-2.5 mb-4">
+                      {/* Pipeline References */}
+                      <div className="flex flex-wrap items-center gap-1.5 text-[11px] text-gray-500 mb-2.5">
+                        {video.scriptId && (
+                          <span className="bg-gray-100 text-gray-700 px-1.5 py-0.5 rounded flex items-center gap-1">
+                            <FileText className="w-3 h-3 text-gray-400" /> Script
+                          </span>
+                        )}
+                        {video.shootId && (
+                          <span className="bg-gray-100 text-gray-700 px-1.5 py-0.5 rounded flex items-center gap-1">
+                            <Camera className="w-3 h-3 text-gray-400" /> Shoot
+                          </span>
+                        )}
+                        {video.renderLink && (
+                          <span className="bg-indigo-50 text-indigo-700 px-1.5 py-0.5 rounded font-bold">
+                            Cut Ready
+                          </span>
+                        )}
+                        {video.finalLink && (
+                          <span className="bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded font-bold">
+                            Delivered Link
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="space-y-2 mb-3">
                         <div className="flex items-center gap-2.5 text-sm text-gray-600 bg-gray-50 rounded-lg p-2 border border-gray-100">
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-1.5 text-xs">
@@ -198,11 +263,12 @@ const VideosPage = () => {
                         )}
                       </div>
                       
-                      <div className="relative">
+                      {/* Move Stage Select */}
+                      <div className="relative" onClick={(e) => e.stopPropagation()}>
                         <select
-                          className="block w-full pl-3 pr-8 py-2 text-sm text-gray-700 bg-gray-50 border-gray-200 rounded-lg hover:bg-gray-100 focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-colors cursor-pointer appearance-none font-medium"
+                          className="block w-full pl-3 pr-8 py-2 text-xs text-gray-700 bg-gray-50 border-gray-200 rounded-lg hover:bg-gray-100 focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-colors cursor-pointer appearance-none font-medium"
                           value={video.status}
-                          onChange={(e) => handleStatusChange(video.id, e.target.value)}
+                          onChange={(e) => handleStatusChange(video, e.target.value)}
                         >
                           {VIDEO_PIPELINE_COLUMNS.map(c => (
                             <option key={c.id} value={c.id}>
@@ -222,6 +288,133 @@ const VideosPage = () => {
           ))}
         </div>
       </div>
+
+      {/* Video Details Modal */}
+      <Modal
+        isOpen={!!selectedVideo}
+        onClose={() => setSelectedVideo(null)}
+        title={selectedVideo ? `${selectedVideo.client?.companyName} — Video #${selectedVideo.videoNumber}` : 'Video Asset'}
+      >
+        {selectedVideo && (
+          <div className="space-y-4 text-xs">
+            <div className="flex items-center justify-between pb-3 border-b border-gray-100">
+              <div>
+                <span className="text-gray-400 block">Current Status</span>
+                <StatusBadge status={selectedVideo.status} type="video" />
+              </div>
+              <div className="text-right">
+                <span className="text-gray-400 block">Deadline</span>
+                <span className="font-bold text-gray-900">{formatDate(selectedVideo.deadline)}</span>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 bg-gray-50 p-3 rounded-lg">
+              <div>
+                <span className="text-gray-400 block">Creator</span>
+                <span className="font-semibold text-gray-800">{selectedVideo.creator?.name || 'Unassigned'}</span>
+              </div>
+              <div>
+                <span className="text-gray-400 block">Assigned Editor</span>
+                <span className="font-semibold text-gray-800">{selectedVideo.editor?.user?.name || 'Unassigned'}</span>
+              </div>
+              <div>
+                <span className="text-gray-400 block">Revision Count</span>
+                <span className="font-semibold text-orange-600">{selectedVideo.revisionCount} rounds</span>
+              </div>
+              <div>
+                <span className="text-gray-400 block">Order Package</span>
+                <span className="font-semibold text-gray-800">{selectedVideo.order?.packageName || 'UGC'}</span>
+              </div>
+            </div>
+
+            {/* Links */}
+            <div className="space-y-2 pt-2 border-t border-gray-100">
+              <span className="font-bold text-gray-800 block">Video Links & Deliverables:</span>
+              {selectedVideo.renderLink && (
+                <div className="flex items-center justify-between p-2.5 rounded bg-indigo-50 border border-indigo-200">
+                  <div className="flex items-center gap-2">
+                    <Video className="w-4 h-4 text-indigo-600" />
+                    <div>
+                      <span className="font-bold text-indigo-900 block">Latest Rough Cut</span>
+                      <span className="text-indigo-700 truncate max-w-[250px] block">{selectedVideo.renderLink}</span>
+                    </div>
+                  </div>
+                  <a href={selectedVideo.renderLink} target="_blank" rel="noreferrer" className="text-indigo-600 hover:underline font-bold flex items-center gap-1">
+                    Open <ExternalLink className="w-3 h-3" />
+                  </a>
+                </div>
+              )}
+
+              {selectedVideo.finalLink && (
+                <div className="flex items-center justify-between p-2.5 rounded bg-emerald-50 border border-emerald-200">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                    <div>
+                      <span className="font-bold text-emerald-900 block">Final Approved Asset</span>
+                      <span className="text-emerald-700 truncate max-w-[250px] block">{selectedVideo.finalLink}</span>
+                    </div>
+                  </div>
+                  <a href={selectedVideo.finalLink} target="_blank" rel="noreferrer" className="text-emerald-600 hover:underline font-bold flex items-center gap-1">
+                    Download <ExternalLink className="w-3 h-3" />
+                  </a>
+                </div>
+              )}
+            </div>
+
+            {/* Script Text */}
+            {selectedVideo.script?.scriptText && (
+              <div className="pt-2 border-t border-gray-100">
+                <span className="font-bold text-gray-800 block mb-1">Approved Script:</span>
+                <p className="p-2.5 bg-gray-50 rounded border text-gray-700 font-mono text-[11px] whitespace-pre-wrap max-h-36 overflow-y-auto">
+                  {selectedVideo.script.scriptText}
+                </p>
+              </div>
+            )}
+
+            <div className="pt-3 border-t border-gray-100 flex justify-end">
+              <Button variant="outline" onClick={() => setSelectedVideo(null)}>
+                Close
+              </Button>
+            </div>
+          </div>
+        )}
+      </Modal>
+
+      {/* Mandatory Final Delivery Link Modal */}
+      <Modal
+        isOpen={!!deliveryModalVideo}
+        onClose={() => setDeliveryModalVideo(null)}
+        title={deliveryModalVideo ? `Final Delivery — ${deliveryModalVideo.client?.companyName} Video #${deliveryModalVideo.videoNumber}` : 'Final Delivery'}
+      >
+        <form onSubmit={handleConfirmDelivery} className="space-y-4 text-xs">
+          <div className="bg-amber-50 p-3 rounded-lg border border-amber-200 text-amber-900">
+            <span className="font-bold block mb-1">Final Delivery Protocol:</span>
+            <p>
+              Moving this asset to <strong>DELIVERED</strong> will publish the final Google Drive download link to the client portal and increment the order quota.
+            </p>
+          </div>
+
+          <FormField label="Google Drive / Cloud Delivery Link" required>
+            <Input
+              type="url"
+              placeholder="https://drive.google.com/drive/folders/..."
+              value={finalDeliveryLink}
+              onChange={(e) => setFinalDeliveryLink(e.target.value)}
+              required
+            />
+          </FormField>
+
+          <div className="flex justify-end gap-2 pt-2 border-t border-gray-100">
+            <Button variant="outline" type="button" onClick={() => setDeliveryModalVideo(null)}>
+              Cancel
+            </Button>
+            <Button type="submit" disabled={savingDelivery} className="bg-emerald-600 hover:bg-emerald-700 text-white">
+              {savingDelivery ? 'Publishing...' : 'Deliver & Notify Client'}
+            </Button>
+          </div>
+        </form>
+      </Modal>
+
       <style dangerouslySetInnerHTML={{__html: `
         .kanban-scroll::-webkit-scrollbar {
           width: 6px;

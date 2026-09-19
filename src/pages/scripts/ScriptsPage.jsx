@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, LayoutGrid, List, FileText, ChevronRight } from 'lucide-react';
 import { useToast } from '../../context/ToastContext';
-import { scriptService, clientService, orderService } from '../../services/api';
+import { scriptService, clientService, orderService, employeeService, creatorService } from '../../services/api';
 import { SCRIPT_PIPELINE_COLUMNS, SCRIPT_STATUSES } from '../../utils/constants';
 import { formatDate } from '../../utils/formatters';
 import { Button, Card, Modal, DataTable, KanbanBoard, StatusBadge, Skeleton, FormField, Select, Input, Textarea } from '../../components/ui';
@@ -16,6 +16,8 @@ export default function ScriptsPage() {
   const [selectedScript, setSelectedScript] = useState(null);
   const [clients, setClients] = useState([]);
   const [orders, setOrders] = useState([]);
+  const [employees, setEmployees] = useState([]);
+  const [creators, setCreators] = useState([]);
   const [submitting, setSubmitting] = useState(false);
 
   const initialForm = { 
@@ -25,7 +27,11 @@ export default function ScriptsPage() {
     title: '', 
     language: 'Hindi', 
     deadline: '', 
-    scriptText: '' 
+    scriptText: '',
+    writerId: '',
+    creatorId: '',
+    referenceLinks: '',
+    comments: ''
   };
   const [formData, setFormData] = useState(initialForm);
 
@@ -33,6 +39,8 @@ export default function ScriptsPage() {
     fetchScripts();
     clientService.getAll().then(res => setClients(res?.data || [])).catch(console.error);
     orderService.getAll().then(res => setOrders(res?.data || [])).catch(console.error);
+    employeeService.getAll().then(res => setEmployees(res?.data || [])).catch(console.error);
+    creatorService.getAll().then(res => setCreators(res?.data || [])).catch(console.error);
   }, []);
 
   const fetchScripts = async () => {
@@ -229,6 +237,10 @@ export default function ScriptsPage() {
                 <span className="font-semibold text-gray-900">{selectedScript.writer?.name || 'Unassigned'}</span>
               </div>
               <div>
+                <span className="text-gray-400 block font-medium">Target Creator</span>
+                <span className="font-semibold text-gray-900">{selectedScript.creator?.name || selectedScript.creator?.handle || 'Unassigned'}</span>
+              </div>
+              <div>
                 <span className="text-gray-400 block font-medium">Language</span>
                 <span className="font-semibold text-gray-900">{selectedScript.language || 'Hindi'}</span>
               </div>
@@ -241,6 +253,25 @@ export default function ScriptsPage() {
                 <span className="font-semibold text-gray-900">{selectedScript.revisionCount || 0}</span>
               </div>
             </div>
+
+            {(selectedScript.referenceLinks || selectedScript.comments) && (
+              <div className="grid grid-cols-1 gap-3 bg-gray-50 p-3 rounded-lg">
+                {selectedScript.referenceLinks && (
+                  <div>
+                    <span className="text-gray-400 block font-medium">Reference Links</span>
+                    <a href={selectedScript.referenceLinks} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline break-all">
+                      {selectedScript.referenceLinks}
+                    </a>
+                  </div>
+                )}
+                {selectedScript.comments && (
+                  <div>
+                    <span className="text-gray-400 block font-medium">Comments</span>
+                    <span className="text-gray-900">{selectedScript.comments}</span>
+                  </div>
+                )}
+              </div>
+            )}
 
             <div>
               <span className="font-bold text-gray-800 block mb-1">Full Script Draft:</span>
@@ -335,6 +366,46 @@ export default function ScriptsPage() {
               type="date" 
               value={formData.deadline} 
               onChange={(e) => setFormData({ ...formData, deadline: e.target.value })} 
+            />
+          </FormField>
+
+          <div className="grid grid-cols-2 gap-3">
+            <FormField label="Assigned Writer">
+              <Select 
+                value={formData.writerId} 
+                onChange={(e) => setFormData({ ...formData, writerId: e.target.value })} 
+              >
+                <option value="">Select Writer</option>
+                {employees.map(e => <option key={e.id} value={e.id}>{e.name}</option>)}
+              </Select>
+            </FormField>
+            
+            <FormField label="Targeted Creator">
+              <Select 
+                value={formData.creatorId} 
+                onChange={(e) => setFormData({ ...formData, creatorId: e.target.value })} 
+              >
+                <option value="">Select Creator</option>
+                {creators.map(c => <option key={c.id} value={c.id}>{c.name || c.handle}</option>)}
+              </Select>
+            </FormField>
+          </div>
+
+          <FormField label="Reference Links">
+            <Textarea 
+              rows={2}
+              placeholder="e.g. https://example.com/ref"
+              value={formData.referenceLinks} 
+              onChange={(e) => setFormData({ ...formData, referenceLinks: e.target.value })} 
+            />
+          </FormField>
+
+          <FormField label="Additional Comments">
+            <Textarea 
+              rows={2} 
+              placeholder="Any specific instructions..."
+              value={formData.comments} 
+              onChange={(e) => setFormData({ ...formData, comments: e.target.value })} 
             />
           </FormField>
 

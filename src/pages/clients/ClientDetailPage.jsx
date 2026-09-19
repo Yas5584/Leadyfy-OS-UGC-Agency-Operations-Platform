@@ -58,8 +58,13 @@ export default function ClientDetailPage() {
         contactName: formData.contactName,
         email: formData.email,
         phone: formData.phone,
+        whatsapp: formData.whatsapp,
         brandName: formData.brandName,
         industry: formData.industry,
+        gstId: formData.gstId,
+        source: formData.source,
+        brandAssets: formData.brandAssets,
+        notes: formData.notes,
         status: formData.status,
         assignedToId: formData.assignedToId
       };
@@ -93,7 +98,7 @@ export default function ClientDetailPage() {
     return <EmptyState title="Client not found" description="The requested client could not be found." />;
   }
 
-  const tabs = ['Overview', 'Orders', 'Scripts', 'Videos', 'Invoices', 'Support', 'Activity'];
+  const tabs = ['Overview', 'Orders', 'Scripts', 'Videos', 'Shoots', 'Invoices', 'Support', 'Activity'];
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
@@ -135,25 +140,47 @@ export default function ClientDetailPage() {
               </div>
               <div className="flex items-center gap-3 text-gray-700">
                 <MessageSquare className="w-5 h-5 text-gray-400" />
-                <span>{client.whatsapp || 'N/A'}</span>
+                <span>WhatsApp: {client.whatsapp || 'N/A'}</span>
               </div>
             </div>
           </Card>
           
           <Card className="p-6">
-            <h3 className="text-lg font-semibold mb-4 border-b pb-2">Company Info</h3>
+            <h3 className="text-lg font-semibold mb-4 border-b pb-2">Company & Brand Details</h3>
             <div className="space-y-4">
               <div className="flex items-center gap-3 text-gray-700">
                 <Building className="w-5 h-5 text-gray-400" />
-                <span>Industry: {client.industry || 'N/A'}</span>
+                <span>Industry: {client.industry || 'General'}</span>
               </div>
               <div className="flex items-center gap-3 text-gray-700">
-                <Badge className="bg-gray-100 text-gray-800">GST: {client.gstId || 'N/A'}</Badge>
+                <Badge className="bg-gray-100 text-gray-800">GST / Tax ID: {client.gstId || 'N/A'}</Badge>
+              </div>
+              <div className="flex items-center gap-3 text-gray-700">
+                <span className="text-sm text-gray-500 font-medium">Lead Source:</span>
+                <span className="text-sm font-semibold text-gray-800">{client.source || 'Direct'}</span>
               </div>
               <div className="flex items-center gap-3 text-gray-700">
                 <User className="w-5 h-5 text-gray-400" />
-                <span>Assigned: {client.assignedTo?.user?.name || 'Unassigned'}</span>
+                <span>Assigned Manager: {client.assignedTo?.user?.name || 'Unassigned'}</span>
               </div>
+              {client.brandAssets && (
+                <div className="pt-2 border-t text-sm">
+                  <span className="text-gray-500 font-medium block mb-1">Brand Assets & Kits:</span>
+                  {client.brandAssets.startsWith('http') ? (
+                    <a href={client.brandAssets} target="_blank" rel="noreferrer" className="text-amber-600 underline break-all">
+                      {client.brandAssets}
+                    </a>
+                  ) : (
+                    <span className="text-gray-700">{client.brandAssets}</span>
+                  )}
+                </div>
+              )}
+              {client.notes && (
+                <div className="pt-2 border-t text-sm">
+                  <span className="text-gray-500 font-medium block mb-1">Internal Notes:</span>
+                  <p className="text-gray-700 italic bg-gray-50 p-2.5 rounded text-xs">{client.notes}</p>
+                </div>
+              )}
             </div>
           </Card>
         </div>
@@ -204,9 +231,66 @@ export default function ClientDetailPage() {
         </Card>
       )}
 
-      {['Invoices', 'Support', 'Activity'].includes(activeTab) && (
-        <Card className="p-6">
-          <EmptyState title={`No ${activeTab} data`} description={`There is no ${activeTab.toLowerCase()} data to display for this client yet.`} />
+      {activeTab === 'Shoots' && (
+        <Card className="p-0">
+          <DataTable 
+            columns={[
+              { key: 'date', title: 'Date', render: (val) => formatDateTime(val) },
+              { key: 'location', title: 'Location', render: (val) => val || 'Studio' },
+              { key: 'status', title: 'Status', render: (val) => <StatusBadge status={val} type="shoot" /> },
+              { key: 'cameraman', title: 'Cameraman', render: (val) => val || 'N/A' },
+              { key: 'shootingAssistant', title: 'Assistant', render: (val) => val || 'N/A' }
+            ]} 
+            data={client.shoots || []} 
+            emptyMessage="No shoots recorded for this client."
+          />
+        </Card>
+      )}
+
+      {activeTab === 'Invoices' && (
+        <Card className="p-0">
+          <DataTable 
+            columns={[
+              { key: 'invoiceAmount', title: 'Invoice Amount', render: (val) => formatCurrency(val) },
+              { key: 'amountReceived', title: 'Amount Received', render: (val) => formatCurrency(val) },
+              { key: 'pendingBalance', title: 'Pending Balance', render: (val) => formatCurrency(val) },
+              { key: 'status', title: 'Status', render: (val) => <StatusBadge status={val} type="payment" /> },
+              { key: 'paymentDate', title: 'Date', render: (val) => val ? formatDateTime(val) : 'Pending' },
+              { key: 'paymentMethod', title: 'Method', render: (val) => val || 'N/A' }
+            ]} 
+            data={client.payments || []} 
+            emptyMessage="No billing records found for this client."
+          />
+        </Card>
+      )}
+
+      {activeTab === 'Support' && (
+        <Card className="p-0">
+          <DataTable 
+            columns={[
+              { key: 'subject', title: 'Subject' },
+              { key: 'priority', title: 'Priority', render: (val) => <Badge className="bg-gray-100 text-gray-800">{val}</Badge> },
+              { key: 'status', title: 'Status', render: (val) => <StatusBadge status={val} type="ticket" /> },
+              { key: 'createdAt', title: 'Created', render: (val) => formatDateTime(val) }
+            ]} 
+            data={client.supportTickets || []} 
+            emptyMessage="No support tickets opened for this client."
+          />
+        </Card>
+      )}
+
+      {activeTab === 'Activity' && (
+        <Card className="p-0">
+          <DataTable 
+            columns={[
+              { key: 'action', title: 'Action', render: (val) => <span className="font-semibold text-xs text-amber-700 bg-amber-50 px-2 py-0.5 rounded">{val}</span> },
+              { key: 'entity', title: 'Entity' },
+              { key: 'user', title: 'Performed By', render: (_, row) => row.user?.name || 'System' },
+              { key: 'createdAt', title: 'Timestamp', render: (val) => formatDateTime(val) }
+            ]} 
+            data={client.activityLogs || []} 
+            emptyMessage="No audit logs available for this client."
+          />
         </Card>
       )}
 
@@ -224,6 +308,9 @@ export default function ClientDetailPage() {
               <FormField label="Industry">
                 <Input value={formData.industry || ''} onChange={e => setFormData({...formData, industry: e.target.value})} disabled={isSaving} />
               </FormField>
+              <FormField label="GST / Tax ID">
+                <Input value={formData.gstId || ''} onChange={e => setFormData({...formData, gstId: e.target.value})} placeholder="e.g. 27AAAAA0000A1Z5" disabled={isSaving} />
+              </FormField>
             </div>
           </div>
           
@@ -239,17 +326,30 @@ export default function ClientDetailPage() {
               <FormField label="Phone">
                 <Input value={formData.phone || ''} onChange={e => setFormData({...formData, phone: e.target.value})} disabled={isSaving} />
               </FormField>
+              <FormField label="WhatsApp">
+                <Input value={formData.whatsapp || ''} onChange={e => setFormData({...formData, whatsapp: e.target.value})} placeholder="+91 ..." disabled={isSaving} />
+              </FormField>
             </div>
           </div>
 
           <div className="border-t pt-4">
-            <h3 className="text-sm font-semibold text-gray-900 mb-3 uppercase tracking-wider">Account Management</h3>
+            <h3 className="text-sm font-semibold text-gray-900 mb-3 uppercase tracking-wider">Account & Operations</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField label="Status">
                 <Select value={formData.status || ''} onChange={e => setFormData({...formData, status: e.target.value})} disabled={isSaving}>
                   {CLIENT_STATUSES.map(status => (
                     <option key={status} value={status}>{status}</option>
                   ))}
+                </Select>
+              </FormField>
+              <FormField label="Lead Source">
+                <Select value={formData.source || 'Referral'} onChange={e => setFormData({...formData, source: e.target.value})} disabled={isSaving}>
+                  <option value="Referral">Referral</option>
+                  <option value="Social Media">Social Media</option>
+                  <option value="Cold Outreach">Cold Outreach</option>
+                  <option value="Website">Website</option>
+                  <option value="Partnership">Partnership</option>
+                  <option value="Other">Other</option>
                 </Select>
               </FormField>
               <FormField label="Account Manager">
@@ -259,6 +359,14 @@ export default function ClientDetailPage() {
                     <option key={emp.id} value={emp.id}>{emp.user?.name || 'Unknown'}</option>
                   ))}
                 </Select>
+              </FormField>
+              <FormField label="Brand Assets / Kit URL">
+                <Input value={formData.brandAssets || ''} onChange={e => setFormData({...formData, brandAssets: e.target.value})} placeholder="Google Drive or Dropbox link" disabled={isSaving} />
+              </FormField>
+            </div>
+            <div className="mt-3">
+              <FormField label="Internal Notes">
+                <Input value={formData.notes || ''} onChange={e => setFormData({...formData, notes: e.target.value})} placeholder="Key brand considerations, requirements..." disabled={isSaving} />
               </FormField>
             </div>
           </div>

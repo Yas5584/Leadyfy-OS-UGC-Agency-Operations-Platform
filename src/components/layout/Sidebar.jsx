@@ -4,7 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { canAccess } from '../../utils/permissions';
 import {
   LayoutDashboard, Users, ShoppingBag, FileText, UserCircle,
-  Camera, Video, CheckSquare, Headphones, Bell,
+  Camera, Video, Film, CheckSquare, Headphones, Bell,
   CreditCard, Receipt, Wallet, BarChart3, UserCog, ScrollText,
   Settings, LogOut, Shield, ChevronLeft, ChevronRight
 } from 'lucide-react';
@@ -32,7 +32,8 @@ export default function Sidebar({ collapsed, onToggle }) {
         { label: 'Scripts', icon: FileText, path: '/scripts', resource: 'scripts' },
         { label: 'Creators', icon: UserCircle, path: '/creators', resource: 'creators' },
         { label: 'Shoots', icon: Camera, path: '/shoots', resource: 'shoots' },
-        { label: 'Videos', icon: Video, path: '/videos', resource: 'videos' }
+        { label: 'Videos', icon: Video, path: '/videos', resource: 'videos' },
+        { label: 'Editor Queue', icon: Film, path: '/editor-dashboard', resource: 'videos' }
       ]
     },
     {
@@ -61,8 +62,9 @@ export default function Sidebar({ collapsed, onToggle }) {
       label: 'ADMINISTRATION',
       items: [
         { label: 'Employees', icon: UserCog, path: '/employees', resource: 'employees' },
-        { label: 'Roles & Permissions', icon: Shield, path: '/settings', resource: 'employees' },
-        { label: 'Activity Logs', icon: ScrollText, path: '/activity-logs', resource: 'activity_logs' }
+        { label: 'Roles & Permissions', icon: Shield, path: '/roles-permissions', resource: 'employees' },
+        { label: 'Activity Logs', icon: ScrollText, path: '/activity-logs', resource: 'activity_logs' },
+        { label: 'Settings', icon: Settings, path: '/settings', resource: 'dashboard' }
       ]
     }
   ];

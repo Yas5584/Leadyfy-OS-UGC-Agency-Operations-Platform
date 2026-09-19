@@ -162,6 +162,8 @@ export const activityService = {
 // ─── Employee Service ────────────────────────────────────
 export const employeeService = {
   getAll: (params) => api.get(`/employees${qs(params)}`),
+  create: (data) => api.post('/employees', data),
+  update: (id, data) => api.put(`/employees/${id}`, data),
 };
 
 export default api;

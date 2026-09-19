@@ -24,7 +24,7 @@ export default function OrdersPage() {
   const [clients, setClients] = useState([]);
   const [submitting, setSubmitting] = useState(false);
   
-  const initialForm = { clientId: '', packageName: '', videoCount: '5', totalAmount: '50000', startDate: '', dueDate: '', notes: '' };
+  const initialForm = { clientId: '', packageName: '', videoCount: '5', pricing: '50000', gstAmount: '0', amountReceived: '0', startDate: '', dueDate: '', notes: '' };
   const [formData, setFormData] = useState(initialForm);
 
   // Order Requests state
@@ -90,10 +90,20 @@ export default function OrdersPage() {
 
     try {
       setSubmitting(true);
+      const pricing = parseFloat(formData.pricing) || 0;
+      const gstAmount = parseFloat(formData.gstAmount) || 0;
+      const totalAmount = pricing + gstAmount;
+      const amountReceived = parseFloat(formData.amountReceived) || 0;
+      const outstandingBalance = totalAmount - amountReceived;
+
       await orderService.create({
         ...formData,
         videoCount: parseInt(formData.videoCount) || 1,
-        totalAmount: parseFloat(formData.totalAmount) || 0
+        pricing,
+        gstAmount,
+        totalAmount,
+        amountReceived,
+        outstandingBalance
       });
       showToast('Order created successfully', 'success');
       setIsAddOpen(false);
@@ -445,13 +455,51 @@ export default function OrdersPage() {
                 required 
               />
             </FormField>
-            <FormField label="Contract Amount (₹)" required>
+            <FormField label="Pricing (₹)" required>
               <Input 
                 type="number" 
                 min="0" 
-                value={formData.totalAmount} 
-                onChange={e => setFormData({...formData, totalAmount: e.target.value})} 
+                value={formData.pricing} 
+                onChange={e => setFormData({...formData, pricing: e.target.value})} 
                 required 
+              />
+            </FormField>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <FormField label="GST Amount (₹)">
+              <Input 
+                type="number" 
+                min="0" 
+                value={formData.gstAmount} 
+                onChange={e => setFormData({...formData, gstAmount: e.target.value})} 
+              />
+            </FormField>
+            <FormField label="Total Invoice Amount (₹)">
+              <Input 
+                type="number"
+                disabled
+                className="bg-gray-50 font-bold text-gray-900"
+                value={(parseFloat(formData.pricing || 0) + parseFloat(formData.gstAmount || 0)).toString()} 
+              />
+            </FormField>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <FormField label="Amount Received (₹)">
+              <Input 
+                type="number" 
+                min="0" 
+                value={formData.amountReceived} 
+                onChange={e => setFormData({...formData, amountReceived: e.target.value})} 
+              />
+            </FormField>
+            <FormField label="Outstanding Balance (₹)">
+              <Input 
+                type="number"
+                disabled
+                className="bg-gray-50 text-amber-700 font-bold"
+                value={((parseFloat(formData.pricing || 0) + parseFloat(formData.gstAmount || 0)) - parseFloat(formData.amountReceived || 0)).toString()} 
               />
             </FormField>
           </div>
