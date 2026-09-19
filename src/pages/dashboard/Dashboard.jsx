@@ -32,6 +32,7 @@ import {
 import api from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import { formatCurrency, formatDate, formatRelative } from '../../utils/formatters';
+import { getStatusLabel } from '../../utils/constants';
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -105,6 +106,14 @@ const Dashboard = () => {
   const payoutsNum = parseFloat(data.payouts || 0);
   const netProfitNum = parseFloat(data.netProfit || (revenueNum - expensesNum - payoutsNum));
   const receivablesNum = parseFloat(data.pendingInvoices || 0);
+
+  const totalPipelineVideos = data.charts?.videoPipeline?.reduce((acc, curr) => acc + (curr.count || 0), 0) || 0;
+  const pipelineData = data.charts?.videoPipeline?.map((entry, index) => ({
+    ...entry,
+    displayName: getStatusLabel(entry.status),
+    color: PIE_COLORS[index % PIE_COLORS.length],
+    percent: totalPipelineVideos > 0 ? Math.round((entry.count / totalPipelineVideos) * 100) : 0
+  })) || [];
 
   return (
     <div className="space-y-6 pb-12 max-w-7xl mx-auto">
@@ -255,45 +264,77 @@ const Dashboard = () => {
         )}
 
         {/* Video Production Pipeline Breakdown */}
-        <div className={`rounded-xl border border-gray-200/80 bg-white p-5 shadow-sm ${!isAdminOrOwner ? 'lg:col-span-2' : ''}`}>
-          <div className="flex items-center justify-between mb-4">
+        <div className={`rounded-xl border border-gray-200/80 bg-white p-5 shadow-sm flex flex-col justify-between ${!isAdminOrOwner ? 'lg:col-span-2' : ''}`}>
+          <div className="flex items-center justify-between mb-2">
             <div>
               <h3 className="text-sm font-bold text-gray-900">Video Pipeline Breakdown</h3>
               <p className="text-xs text-gray-500">Active reels & videos across pipeline stages</p>
             </div>
-          </div>
-          <div className="h-64 w-full">
-            {data.charts?.videoPipeline?.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={data.charts.videoPipeline}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={90}
-                    paddingAngle={3}
-                    dataKey="count"
-                    nameKey="status"
-                    label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
-                    labelLine={false}
-                  >
-                    {data.charts.videoPipeline.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip 
-                    formatter={(value) => [value, 'Videos']}
-                    contentStyle={{ borderRadius: '0.5rem', border: '1px solid #e2e8f0', fontSize: '12px' }}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="flex h-full items-center justify-center text-xs text-gray-400">
-                No pipeline data available
-              </div>
+            {totalPipelineVideos > 0 && (
+              <span className="text-xs font-bold text-gray-600 bg-gray-100 px-2.5 py-1 rounded-full border border-gray-200">
+                {totalPipelineVideos} {totalPipelineVideos === 1 ? 'Video' : 'Videos'}
+              </span>
             )}
           </div>
+
+          {pipelineData.length > 0 ? (
+            <div className="flex flex-col sm:flex-row items-center gap-6 my-auto pt-2">
+              {/* Donut Chart with Centered Total */}
+              <div className="h-52 w-52 flex-shrink-0 relative mx-auto">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={pipelineData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={58}
+                      outerRadius={82}
+                      paddingAngle={3}
+                      dataKey="count"
+                      nameKey="displayName"
+                    >
+                      {pipelineData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip 
+                      formatter={(value, name) => [`${value} Videos`, name]}
+                      contentStyle={{ borderRadius: '0.5rem', border: '1px solid #e2e8f0', fontSize: '12px' }}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                  <span className="text-2xl font-black text-gray-900">{totalPipelineVideos}</span>
+                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Total Active</span>
+                </div>
+              </div>
+
+              {/* Clean Legend Grid with human-readable names, counts, and % */}
+              <div className="flex-1 w-full grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {pipelineData.map((item, idx) => (
+                  <div 
+                    key={idx} 
+                    className="flex items-center justify-between p-2 rounded-lg bg-gray-50/70 border border-gray-100 text-xs"
+                  >
+                    <div className="flex items-center gap-2 min-w-0 pr-2">
+                      <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: item.color }} />
+                      <span className="text-gray-700 font-semibold truncate" title={item.displayName}>
+                        {item.displayName}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1 font-mono text-xs whitespace-nowrap">
+                      <span className="font-bold text-gray-900">{item.count}</span>
+                      <span className="text-gray-400 text-[11px]">({item.percent}%)</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="flex h-64 items-center justify-center text-xs text-gray-400">
+              No pipeline data available
+            </div>
+          )}
         </div>
       </div>
       {/* Needs Attention Section */}

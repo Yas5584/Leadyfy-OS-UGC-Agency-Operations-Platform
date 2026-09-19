@@ -1,4 +1,9 @@
-const BASE_URL = import.meta.env.VITE_API_URL || '/api';
+// Clean up BASE_URL and ensure proper formatting
+let rawBase = (import.meta.env.VITE_API_URL || '/api').trim().replace(/\/+$/, '');
+if (rawBase.startsWith('http') && !rawBase.endsWith('/api')) {
+  rawBase += '/api';
+}
+const BASE_URL = rawBase;
 
 const request = async (url, options = {}) => {
   const token = localStorage.getItem('token');
@@ -8,7 +13,8 @@ const request = async (url, options = {}) => {
   };
   if (token) headers.Authorization = `Bearer ${token}`;
 
-  const res = await fetch(`${BASE_URL}${url}`, { ...options, headers });
+  const cleanUrl = url.startsWith('/') ? url : `/${url}`;
+  const res = await fetch(`${BASE_URL}${cleanUrl}`, { ...options, headers });
   if (res.status === 401) {
     localStorage.removeItem('token');
     window.location.href = '/login';
