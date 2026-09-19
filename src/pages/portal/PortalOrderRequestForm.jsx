@@ -76,9 +76,15 @@ export default function PortalOrderRequestForm() {
     
     setSubmitting(true);
     try {
-      const response = await api.post('/order-requests', form);
-      // Depending on axios/fetch, response.data usually holds the json payload
-      setSubmitted(response.data || { ...form, id: Math.random().toString(36).substring(7), status: 'PENDING' });
+      const payload = {
+        ...form,
+        videoCount: parseInt(form.videoCount, 10),
+        budget: form.budget ? parseFloat(form.budget) : null,
+        preferredDeadline: form.preferredDeadline ? new Date(form.preferredDeadline).toISOString() : null,
+        requirements: form.requirements || null
+      };
+      const response = await api.post('/order-requests', payload);
+      setSubmitted(response.data || { ...payload, id: Math.random().toString(36).substring(7), status: 'PENDING' });
       showToast('Order request submitted successfully', 'success');
     } catch (error) {
       showToast(error.response?.data?.message || error.message || 'Failed to submit order request', 'error');
