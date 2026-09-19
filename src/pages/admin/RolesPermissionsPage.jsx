@@ -6,7 +6,8 @@ import {
   DEFAULT_ROLE_PERMISSIONS, 
   getActivePermissions, 
   savePermissions, 
-  resetPermissions 
+  resetPermissions,
+  syncPermissionsFromServer
 } from '../../utils/permissions';
 import { Card, Button, Badge } from '../../components/ui';
 
@@ -49,6 +50,9 @@ export default function RolesPermissionsPage() {
 
   useEffect(() => {
     setPermissions(getActivePermissions());
+    syncPermissionsFromServer().then(perms => {
+      if (perms) setPermissions(perms);
+    });
   }, []);
 
   const handleToggle = (moduleId, action) => {
@@ -81,8 +85,8 @@ export default function RolesPermissionsPage() {
     });
   };
 
-  const handleSave = () => {
-    const success = savePermissions(permissions);
+  const handleSave = async () => {
+    const success = await savePermissions(permissions);
     if (success) {
       showToast('Role permissions saved successfully', 'success');
       setHasChanges(false);
@@ -91,8 +95,8 @@ export default function RolesPermissionsPage() {
     }
   };
 
-  const handleReset = () => {
-    resetPermissions();
+  const handleReset = async () => {
+    await resetPermissions();
     setPermissions(DEFAULT_ROLE_PERMISSIONS);
     setHasChanges(false);
     showToast('Reset to default system permissions', 'success');

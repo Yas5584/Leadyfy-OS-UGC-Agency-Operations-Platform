@@ -12,6 +12,17 @@ import {
 export default function Sidebar({ collapsed, onToggle }) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const [, setPermVersion] = useState(0);
+
+  React.useEffect(() => {
+    const handleUpdate = () => setPermVersion(v => v + 1);
+    window.addEventListener('permissionsUpdated', handleUpdate);
+    window.addEventListener('storage', handleUpdate);
+    return () => {
+      window.removeEventListener('permissionsUpdated', handleUpdate);
+      window.removeEventListener('storage', handleUpdate);
+    };
+  }, []);
 
   if (!user) return null;
 

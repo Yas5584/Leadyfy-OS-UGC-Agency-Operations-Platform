@@ -1,14 +1,39 @@
-import React from 'react';
-import { Navigate, Outlet, NavLink, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Navigate, Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import TopNav from './TopNav';
-import { LayoutDashboard, ShoppingBag, FileText, Video, Headphones, Receipt, LogOut } from 'lucide-react';
-
+import { 
+  LayoutDashboard, ShoppingBag, FileText, Video, 
+  Headphones, Receipt, BarChart3, LogOut, ShieldAlert 
+} from 'lucide-react';
+import { canAccess, syncPermissionsFromServer } from '../../utils/permissions';
+import { Button } from '../ui';
 import ErrorBoundary from '../ui/ErrorBoundary';
 
 export default function PortalLayout() {
   const { user, isAuthenticated, loading, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const [, setPermVersion] = useState(0);
+
+  useEffect(() => {
+    // Initial sync from server on mount
+    syncPermissionsFromServer().then(() => {
+      setPermVersion(v => v + 1);
+    });
+
+    const handleUpdate = () => {
+      setPermVersion(v => v + 1);
+    };
+
+    window.addEventListener('permissionsUpdated', handleUpdate);
+    window.addEventListener('storage', handleUpdate);
+
+    return () => {
+      window.removeEventListener('permissionsUpdated', handleUpdate);
+      window.removeEventListener('storage', handleUpdate);
+    };
+  }, []);
 
   const handleLogout = () => {
     logout();
@@ -31,23 +56,44 @@ export default function PortalLayout() {
   if (user?.role !== 'CLIENT') return <Navigate to="/" />;
 
   const navItems = [
-    { label: 'Dashboard', icon: LayoutDashboard, path: '/portal' },
-    { label: 'My Orders', icon: ShoppingBag, path: '/portal/orders' },
-    { label: 'Scripts', icon: FileText, path: '/portal/scripts' },
-    { label: 'Videos', icon: Video, path: '/portal/videos' },
-    { label: 'Support', icon: Headphones, path: '/portal/support' },
-    { label: 'Invoices', icon: Receipt, path: '/portal/invoices' }
+    { label: 'Dashboard', icon: LayoutDashboard, path: '/portal', resource: 'dashboard' },
+    { label: 'My Orders', icon: ShoppingBag, path: '/portal/orders', resource: 'orders' },
+    { label: 'Scripts', icon: FileText, path: '/portal/scripts', resource: 'scripts' },
+    { label: 'Videos', icon: Video, path: '/portal/videos', resource: 'videos' },
+    { label: 'Reports', icon: BarChart3, path: '/portal/reports', resource: 'reports' },
+    { label: 'Support', icon: Headphones, path: '/portal/support', resource: 'support' },
+    { label: 'Invoices', icon: Receipt, path: '/portal/invoices', resource: 'payments' }
   ];
+
+  const visibleNavItems = navItems.filter(item => canAccess(user?.role, item.resource));
+
+  // If on /portal root and dashboard is disabled, redirect to first allowed route
+  if (location.pathname === '/portal' && !canAccess(user?.role, 'dashboard')) {
+    if (visibleNavItems.length > 0 && visibleNavItems[0].path !== '/portal') {
+      return <Navigate to={visibleNavItems[0].path} replace />;
+    }
+  }
+
+  // Check if current route is restricted
+  const currentNavItem = navItems.find(item => 
+    item.path === location.pathname || (item.path !== '/portal' && location.pathname.startsWith(item.path))
+  );
+  const isCurrentRestricted = currentNavItem && !canAccess(user?.role, currentNavItem.resource);
 
   return (
     <div className="flex h-screen overflow-hidden bg-gray-50">
       <div className="w-64 bg-gray-900 text-gray-300 flex flex-col flex-shrink-0">
         <div className="h-16 flex items-center px-6 border-b border-gray-800">
-          <h1 className="text-lg font-bold text-white">Client Portal</h1>
+          <div className="flex items-center gap-2">
+            <div className="w-7 h-7 rounded-md bg-amber-500 flex items-center justify-center text-white font-black text-xs">
+              LO
+            </div>
+            <h1 className="text-base font-bold text-white tracking-tight">Client Portal</h1>
+          </div>
         </div>
         <nav className="flex-1 overflow-y-auto py-4 scrollbar-dark">
           <ul className="space-y-1">
-            {navItems.map(item => (
+            {visibleNavItems.map(item => (
               <li key={item.path}>
                 <NavLink
                   to={item.path}
@@ -91,7 +137,27 @@ export default function PortalLayout() {
         <TopNav />
         <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
           <ErrorBoundary>
-            <Outlet />
+            {isCurrentRestricted ? (
+              <div className="p-8 max-w-md mx-auto text-center space-y-4 mt-12 bg-white rounded-2xl border border-gray-200 shadow-sm">
+                <div className="w-12 h-12 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center mx-auto border border-amber-200">
+                  <ShieldAlert className="w-6 h-6" />
+                </div>
+                <h2 className="text-lg font-bold text-gray-900">Access Restricted</h2>
+                <p className="text-xs text-gray-500 leading-relaxed">
+                  This module is not currently enabled for your portal role by the agency administrators.
+                </p>
+                {visibleNavItems.length > 0 && (
+                  <Button 
+                    onClick={() => navigate(visibleNavItems[0].path)} 
+                    className="bg-amber-500 hover:bg-amber-600 text-white text-xs"
+                  >
+                    Go to {visibleNavItems[0].label}
+                  </Button>
+                )}
+              </div>
+            ) : (
+              <Outlet />
+            )}
           </ErrorBoundary>
         </main>
       </div>

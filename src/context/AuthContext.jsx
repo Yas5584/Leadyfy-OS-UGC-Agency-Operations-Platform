@@ -1,5 +1,6 @@
 import { useState, createContext, useContext, useEffect } from 'react';
 import api from '../services/api';
+import { syncPermissionsFromServer } from '../utils/permissions';
 
 const AuthContext = createContext(null);
 
@@ -28,6 +29,7 @@ export function AuthProvider({ children }) {
           const userData = res.data || res.user || res;
           setUser(userData);
           localStorage.setItem('user', JSON.stringify(userData));
+          syncPermissionsFromServer().catch(() => {});
         } catch (error) {
           if (error?.message === 'Unauthorized' || error?.status === 401 || error?.response?.status === 401) {
             localStorage.removeItem('token');
@@ -56,6 +58,7 @@ export function AuthProvider({ children }) {
       localStorage.setItem('user', JSON.stringify(userData));
     }
     setUser(userData);
+    syncPermissionsFromServer().catch(() => {});
     return { token, user: userData };
   };
 

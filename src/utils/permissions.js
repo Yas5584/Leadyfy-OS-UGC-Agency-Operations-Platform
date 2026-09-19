@@ -1,5 +1,6 @@
 // ─── RBAC & Permission Management ────────────────────────
 // Source of truth: Leadyfy OS Technical & Operational Specification
+import api from '../services/api';
 
 export const DEFAULT_ROLE_PERMISSIONS = {
   OWNER: {
@@ -66,7 +67,13 @@ export const DEFAULT_ROLE_PERMISSIONS = {
     notifications: ['view']
   },
   CLIENT: {
-    portal: ['view', 'create', 'edit']
+    dashboard: ['view', 'manage'],
+    orders: ['view', 'create'],
+    scripts: ['view', 'edit'],
+    videos: ['view', 'edit'],
+    support: ['view', 'create'],
+    payments: ['view'],
+    reports: ['view', 'export']
   }
 };
 
@@ -75,24 +82,58 @@ export const getActivePermissions = () => {
   try {
     const stored = localStorage.getItem('leadyfy_role_permissions');
     if (stored) {
-      return { ...DEFAULT_ROLE_PERMISSIONS, ...JSON.parse(stored) };
+      const parsed = JSON.parse(stored);
+      // Merge with defaults to ensure all roles and modules have structure
+      return {
+        ...DEFAULT_ROLE_PERMISSIONS,
+        ...parsed,
+        CLIENT: {
+          ...DEFAULT_ROLE_PERMISSIONS.CLIENT,
+          ...(parsed.CLIENT || {})
+        }
+      };
     }
   } catch {}
   return DEFAULT_ROLE_PERMISSIONS;
 };
 
-export const savePermissions = (newPermissions) => {
+// Sync permissions from backend API to ensure multi-device consistency
+export const syncPermissionsFromServer = async () => {
+  try {
+    const res = await api.get('/settings/permissions');
+    if (res?.data && typeof res.data === 'object') {
+      const serverPerms = res.data?.data || res.data;
+      if (serverPerms && typeof serverPerms === 'object' && Object.keys(serverPerms).length > 0) {
+        localStorage.setItem('leadyfy_role_permissions', JSON.stringify(serverPerms));
+        window.dispatchEvent(new Event('permissionsUpdated'));
+        return serverPerms;
+      }
+    }
+  } catch (err) {
+    console.warn('Could not sync permissions from server:', err);
+  }
+  return getActivePermissions();
+};
+
+export const savePermissions = async (newPermissions) => {
   try {
     localStorage.setItem('leadyfy_role_permissions', JSON.stringify(newPermissions));
+    window.dispatchEvent(new Event('permissionsUpdated'));
+    // Persist to backend server so all sessions/browsers receive updates
+    await api.put('/settings/permissions', newPermissions).catch(err => {
+      console.warn('Failed to persist permissions to backend:', err);
+    });
     return true;
   } catch {
     return false;
   }
 };
 
-export const resetPermissions = () => {
+export const resetPermissions = async () => {
   try {
     localStorage.removeItem('leadyfy_role_permissions');
+    window.dispatchEvent(new Event('permissionsUpdated'));
+    await api.put('/settings/permissions', DEFAULT_ROLE_PERMISSIONS).catch(() => {});
     return true;
   } catch {
     return false;

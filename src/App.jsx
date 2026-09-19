@@ -36,6 +36,7 @@ import PortalVideos from './pages/portal/PortalVideos';
 import PortalVideoReview from './pages/portal/PortalVideoReview';
 import PortalSupport from './pages/portal/PortalSupport';
 import PortalInvoices from './pages/portal/PortalInvoices';
+import PortalReports from './pages/portal/PortalReports';
 import PortalOrderRequestForm from './pages/portal/PortalOrderRequestForm';
 import PortalOrderRequestDetail from './pages/portal/PortalOrderRequestDetail';
 
@@ -86,6 +87,7 @@ function App() {
             <Route path="scripts" element={<PortalScripts />} />
             <Route path="videos" element={<PortalVideos />} />
             <Route path="videos/:id" element={<PortalVideoReview />} />
+            <Route path="reports" element={<PortalReports />} />
             <Route path="support" element={<PortalSupport />} />
             <Route path="invoices" element={<PortalInvoices />} />
           </Route>
