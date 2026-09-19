@@ -31,10 +31,12 @@ import {
 } from 'recharts';
 import api from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import { formatCurrency, formatDate, formatRelative } from '../../utils/formatters';
 import { getStatusLabel } from '../../utils/constants';
 
 const Dashboard = () => {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -135,89 +137,159 @@ const Dashboard = () => {
 
       {/* Primary Operational KPIs */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <div className="rounded-xl border border-gray-200/80 bg-white p-4 shadow-sm">
+        <div 
+          onClick={() => navigate('/clients')}
+          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigate('/clients'); } }}
+          role="button"
+          tabIndex={0}
+          className="rounded-xl border border-gray-200/80 bg-white p-4 shadow-sm hover:shadow-md hover:border-blue-400 hover:-translate-y-0.5 transition-all duration-200 cursor-pointer group focus:outline-none focus:ring-2 focus:ring-blue-400"
+        >
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-wider text-gray-400">Active Clients</span>
-            <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
+            <span className="text-xs font-semibold uppercase tracking-wider text-gray-400 group-hover:text-blue-600 transition-colors">Active Clients</span>
+            <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center group-hover:bg-blue-100 group-hover:scale-110 transition-all">
               <Users className="w-4 h-4" />
             </div>
           </div>
-          <p className="mt-2 text-2xl font-black text-gray-900">{data.totalActiveClients || 0}</p>
-          <p className="text-[11px] text-gray-500 mt-1">{data.newClients || 0} onboarded recently</p>
+          <p className="mt-2 text-2xl font-black text-gray-900 group-hover:text-blue-700 transition-colors">{data.totalActiveClients || 0}</p>
+          <p className="text-[11px] text-gray-500 mt-1 flex items-center justify-between">
+            <span>{data.newClients || 0} onboarded recently</span>
+            <ArrowUpRight className="w-3.5 h-3.5 text-gray-300 opacity-0 group-hover:opacity-100 group-hover:text-blue-500 transition-all" />
+          </p>
         </div>
 
-        <div className="rounded-xl border border-gray-200/80 bg-white p-4 shadow-sm">
+        <div 
+          onClick={() => navigate('/orders')}
+          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigate('/orders'); } }}
+          role="button"
+          tabIndex={0}
+          className="rounded-xl border border-gray-200/80 bg-white p-4 shadow-sm hover:shadow-md hover:border-purple-400 hover:-translate-y-0.5 transition-all duration-200 cursor-pointer group focus:outline-none focus:ring-2 focus:ring-purple-400"
+        >
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-wider text-gray-400">Active Orders</span>
-            <div className="w-8 h-8 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center">
+            <span className="text-xs font-semibold uppercase tracking-wider text-gray-400 group-hover:text-purple-600 transition-colors">Active Orders</span>
+            <div className="w-8 h-8 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center group-hover:bg-purple-100 group-hover:scale-110 transition-all">
               <ShoppingCart className="w-4 h-4" />
             </div>
           </div>
-          <p className="mt-2 text-2xl font-black text-gray-900">{data.activeOrders || 0}</p>
-          <p className="text-[11px] text-gray-500 mt-1">{data.pendingScripts || 0} scripts in review</p>
+          <p className="mt-2 text-2xl font-black text-gray-900 group-hover:text-purple-700 transition-colors">{data.activeOrders || 0}</p>
+          <p className="text-[11px] text-gray-500 mt-1 flex items-center justify-between">
+            <span>{data.pendingScripts || 0} scripts in review</span>
+            <ArrowUpRight className="w-3.5 h-3.5 text-gray-300 opacity-0 group-hover:opacity-100 group-hover:text-purple-500 transition-all" />
+          </p>
         </div>
 
-        <div className="rounded-xl border border-gray-200/80 bg-white p-4 shadow-sm">
+        <div 
+          onClick={() => navigate('/videos')}
+          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigate('/videos'); } }}
+          role="button"
+          tabIndex={0}
+          className="rounded-xl border border-gray-200/80 bg-white p-4 shadow-sm hover:shadow-md hover:border-amber-400 hover:-translate-y-0.5 transition-all duration-200 cursor-pointer group focus:outline-none focus:ring-2 focus:ring-amber-400"
+        >
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-wider text-gray-400">In Production</span>
-            <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
+            <span className="text-xs font-semibold uppercase tracking-wider text-gray-400 group-hover:text-amber-600 transition-colors">In Production</span>
+            <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center group-hover:bg-amber-100 group-hover:scale-110 transition-all">
               <Video className="w-4 h-4" />
             </div>
           </div>
-          <p className="mt-2 text-2xl font-black text-gray-900">{data.videosInProduction || 0}</p>
-          <p className="text-[11px] text-gray-500 mt-1">{data.upcomingShoots || 0} shoots queued</p>
+          <p className="mt-2 text-2xl font-black text-gray-900 group-hover:text-amber-700 transition-colors">{data.videosInProduction || 0}</p>
+          <p className="text-[11px] text-gray-500 mt-1 flex items-center justify-between">
+            <span>{data.upcomingShoots || 0} shoots queued</span>
+            <ArrowUpRight className="w-3.5 h-3.5 text-gray-300 opacity-0 group-hover:opacity-100 group-hover:text-amber-500 transition-all" />
+          </p>
         </div>
 
-        <div className="rounded-xl border border-gray-200/80 bg-white p-4 shadow-sm">
+        <div 
+          onClick={() => navigate('/videos')}
+          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigate('/videos'); } }}
+          role="button"
+          tabIndex={0}
+          className="rounded-xl border border-gray-200/80 bg-white p-4 shadow-sm hover:shadow-md hover:border-emerald-400 hover:-translate-y-0.5 transition-all duration-200 cursor-pointer group focus:outline-none focus:ring-2 focus:ring-emerald-400"
+        >
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-wider text-gray-400">Approvals Due</span>
-            <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
+            <span className="text-xs font-semibold uppercase tracking-wider text-gray-400 group-hover:text-emerald-600 transition-colors">Approvals Due</span>
+            <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center group-hover:bg-emerald-100 group-hover:scale-110 transition-all">
               <CheckSquare className="w-4 h-4" />
             </div>
           </div>
-          <p className="mt-2 text-2xl font-black text-gray-900">{data.pendingApprovals || 0}</p>
-          <p className="text-[11px] text-gray-500 mt-1">{data.deliveredVideos || 0} videos delivered</p>
+          <p className="mt-2 text-2xl font-black text-gray-900 group-hover:text-emerald-700 transition-colors">{data.pendingApprovals || 0}</p>
+          <p className="text-[11px] text-gray-500 mt-1 flex items-center justify-between">
+            <span>{data.deliveredVideos || 0} videos delivered</span>
+            <ArrowUpRight className="w-3.5 h-3.5 text-gray-300 opacity-0 group-hover:opacity-100 group-hover:text-emerald-500 transition-all" />
+          </p>
         </div>
       </div>
 
       {/* Financial KPIs (Owner / Admin) */}
       {isAdminOrOwner && (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <div className="rounded-xl border border-emerald-100 bg-emerald-50/40 p-4 shadow-sm">
+          <div 
+            onClick={() => navigate('/payments')}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigate('/payments'); } }}
+            role="button"
+            tabIndex={0}
+            className="rounded-xl border border-emerald-100 bg-emerald-50/40 p-4 shadow-sm hover:shadow-md hover:border-emerald-300 hover:-translate-y-0.5 transition-all duration-200 cursor-pointer group focus:outline-none focus:ring-2 focus:ring-emerald-400"
+          >
             <div className="flex items-center justify-between">
               <span className="text-xs font-semibold uppercase tracking-wider text-emerald-700">Gross Revenue</span>
-              <DollarSign className="w-4 h-4 text-emerald-600" />
+              <DollarSign className="w-4 h-4 text-emerald-600 group-hover:scale-110 transition-transform" />
             </div>
             <p className="mt-2 text-2xl font-black text-emerald-700">{formatCurrency(revenueNum)}</p>
-            <p className="text-[11px] text-emerald-600 mt-1">Total collections</p>
+            <p className="text-[11px] text-emerald-600 mt-1 flex items-center justify-between">
+              <span>Total collections</span>
+              <ArrowUpRight className="w-3.5 h-3.5 text-emerald-400 opacity-0 group-hover:opacity-100 transition-all" />
+            </p>
           </div>
 
-          <div className="rounded-xl border border-red-100 bg-red-50/40 p-4 shadow-sm">
+          <div 
+            onClick={() => navigate('/expenses')}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigate('/expenses'); } }}
+            role="button"
+            tabIndex={0}
+            className="rounded-xl border border-red-100 bg-red-50/40 p-4 shadow-sm hover:shadow-md hover:border-red-300 hover:-translate-y-0.5 transition-all duration-200 cursor-pointer group focus:outline-none focus:ring-2 focus:ring-red-400"
+          >
             <div className="flex items-center justify-between">
               <span className="text-xs font-semibold uppercase tracking-wider text-red-700">Agency Expenses</span>
-              <TrendingDown className="w-4 h-4 text-red-600" />
+              <TrendingDown className="w-4 h-4 text-red-600 group-hover:scale-110 transition-transform" />
             </div>
             <p className="mt-2 text-2xl font-black text-red-700">{formatCurrency(expensesNum)}</p>
-            <p className="text-[11px] text-red-600 mt-1">Operational overhead</p>
+            <p className="text-[11px] text-red-600 mt-1 flex items-center justify-between">
+              <span>Operational overhead</span>
+              <ArrowUpRight className="w-3.5 h-3.5 text-red-400 opacity-0 group-hover:opacity-100 transition-all" />
+            </p>
           </div>
 
-          <div className="rounded-xl border border-amber-100 bg-amber-50/40 p-4 shadow-sm">
+          <div 
+            onClick={() => navigate('/creator-payouts')}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigate('/creator-payouts'); } }}
+            role="button"
+            tabIndex={0}
+            className="rounded-xl border border-amber-100 bg-amber-50/40 p-4 shadow-sm hover:shadow-md hover:border-amber-300 hover:-translate-y-0.5 transition-all duration-200 cursor-pointer group focus:outline-none focus:ring-2 focus:ring-amber-400"
+          >
             <div className="flex items-center justify-between">
               <span className="text-xs font-semibold uppercase tracking-wider text-amber-700">Creator Payouts</span>
-              <CreditCard className="w-4 h-4 text-amber-600" />
+              <CreditCard className="w-4 h-4 text-amber-600 group-hover:scale-110 transition-transform" />
             </div>
             <p className="mt-2 text-2xl font-black text-amber-700">{formatCurrency(payoutsNum)}</p>
-            <p className="text-[11px] text-amber-600 mt-1">Disbursed talent fees</p>
+            <p className="text-[11px] text-amber-600 mt-1 flex items-center justify-between">
+              <span>Disbursed talent fees</span>
+              <ArrowUpRight className="w-3.5 h-3.5 text-amber-400 opacity-0 group-hover:opacity-100 transition-all" />
+            </p>
           </div>
 
-          <div className="rounded-xl border border-blue-100 bg-blue-50/40 p-4 shadow-sm">
+          <div 
+            onClick={() => navigate('/reports')}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigate('/reports'); } }}
+            role="button"
+            tabIndex={0}
+            className="rounded-xl border border-blue-100 bg-blue-50/40 p-4 shadow-sm hover:shadow-md hover:border-blue-300 hover:-translate-y-0.5 transition-all duration-200 cursor-pointer group focus:outline-none focus:ring-2 focus:ring-blue-400"
+          >
             <div className="flex items-center justify-between">
               <span className="text-xs font-semibold uppercase tracking-wider text-blue-700">Net Profit</span>
-              <TrendingUp className="w-4 h-4 text-blue-600" />
+              <TrendingUp className="w-4 h-4 text-blue-600 group-hover:scale-110 transition-transform" />
             </div>
             <p className="mt-2 text-2xl font-black text-blue-700">{formatCurrency(netProfitNum)}</p>
-            <p className="text-[11px] text-blue-600 mt-1">
-              Receivables: {formatCurrency(receivablesNum)}
+            <p className="text-[11px] text-blue-600 mt-1 flex items-center justify-between">
+              <span>Receivables: {formatCurrency(receivablesNum)}</span>
+              <ArrowUpRight className="w-3.5 h-3.5 text-blue-400 opacity-0 group-hover:opacity-100 transition-all" />
             </p>
           </div>
         </div>
@@ -271,17 +343,23 @@ const Dashboard = () => {
               <h3 className="text-sm font-bold text-gray-900">Video Pipeline Breakdown</h3>
               <p className="text-xs text-gray-500">Active reels & videos across pipeline stages</p>
             </div>
-            {totalPipelineVideos > 0 && (
-              <span className="text-xs font-bold text-gray-600 bg-gray-100 px-2.5 py-1 rounded-full border border-gray-200">
-                {totalPipelineVideos} {totalPipelineVideos === 1 ? 'Video' : 'Videos'}
-              </span>
-            )}
+            <button
+              onClick={() => navigate('/videos')}
+              className="text-xs font-bold text-gray-600 hover:text-amber-600 bg-gray-100 hover:bg-amber-50 px-2.5 py-1 rounded-full border border-gray-200 hover:border-amber-300 transition-colors flex items-center gap-1 cursor-pointer"
+            >
+              {totalPipelineVideos} {totalPipelineVideos === 1 ? 'Video' : 'Videos'}
+              <ArrowUpRight className="w-3 h-3" />
+            </button>
           </div>
 
           {pipelineData.length > 0 ? (
             <div className="flex flex-col sm:flex-row items-center gap-6 my-auto pt-2">
               {/* Donut Chart with Interactive Centered Indicator */}
-              <div className="h-52 w-52 flex-shrink-0 relative mx-auto">
+              <div 
+                onClick={() => navigate('/videos')}
+                className="h-52 w-52 flex-shrink-0 relative mx-auto cursor-pointer"
+                title="View Video Pipeline"
+              >
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
@@ -330,6 +408,7 @@ const Dashboard = () => {
                 {pipelineData.map((item, idx) => (
                   <div 
                     key={idx} 
+                    onClick={() => navigate('/videos')}
                     onMouseEnter={() => setHoveredStage(item)}
                     onMouseLeave={() => setHoveredStage(null)}
                     className={`flex items-center justify-between px-3 py-1.5 rounded-lg border text-xs transition-all cursor-pointer ${
@@ -386,19 +465,22 @@ const Dashboard = () => {
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
               {attentionItems.map((item, idx) => (
-                <a
+                <div
                   key={idx}
-                  href={item.link}
-                  className="flex items-center gap-3 rounded-lg border border-gray-200/80 bg-white p-3 hover:shadow-md transition-all group"
+                  onClick={() => navigate(item.link)}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigate(item.link); } }}
+                  className="flex items-center gap-3 rounded-lg border border-gray-200/80 bg-white p-3 hover:shadow-md hover:border-amber-400 transition-all cursor-pointer group"
                 >
-                  <div className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 ${item.color}`}>
+                  <div className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 ${item.color} group-hover:scale-110 transition-transform`}>
                     <item.icon className="w-4 h-4" />
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="text-xs font-semibold text-gray-800 line-clamp-2">{item.label}</p>
                   </div>
                   <ArrowUpRight className="w-3.5 h-3.5 text-gray-300 group-hover:text-amber-500 transition-colors flex-shrink-0" />
-                </a>
+                </div>
               ))}
             </div>
           </div>
@@ -409,19 +491,29 @@ const Dashboard = () => {
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         {/* Today's Shoots */}
         <div className="rounded-xl border border-gray-200/80 bg-white shadow-sm overflow-hidden flex flex-col">
-          <div className="border-b border-gray-100 px-5 py-3.5 bg-gray-50/50">
+          <div className="border-b border-gray-100 px-5 py-3.5 bg-gray-50/50 flex items-center justify-between">
             <h3 className="flex items-center text-xs font-bold uppercase tracking-wider text-gray-700">
               <Calendar className="mr-2 h-4 w-4 text-amber-500" />
               Upcoming Shoots ({data.widgets?.todayShoots?.length || 0})
             </h3>
+            <button 
+              onClick={() => navigate('/shoots')}
+              className="text-[11px] font-semibold text-amber-600 hover:text-amber-700 flex items-center gap-0.5 cursor-pointer transition-colors"
+            >
+              View all <ArrowUpRight className="w-3 h-3" />
+            </button>
           </div>
           <div className="p-4 flex-1">
             {data.widgets?.todayShoots?.length > 0 ? (
-              <ul className="space-y-3">
+              <ul className="space-y-2">
                 {data.widgets.todayShoots.slice(0, 5).map((shoot, idx) => (
-                  <li key={idx} className="flex items-start justify-between text-xs border-b border-gray-50 pb-2.5 last:border-0 last:pb-0">
+                  <li 
+                    key={idx} 
+                    onClick={() => navigate('/shoots')}
+                    className="flex items-start justify-between text-xs border-b border-gray-50 pb-2.5 last:border-0 last:pb-0 p-1.5 -mx-1.5 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
+                  >
                     <div>
-                      <p className="font-bold text-gray-900">{shoot.client?.companyName || 'Client'}</p>
+                      <p className="font-bold text-gray-900 hover:text-amber-600 transition-colors">{shoot.client?.companyName || 'Client'}</p>
                       <p className="text-gray-400 mt-0.5">
                         Creator: {shoot.creator?.name || 'Pending'}
                       </p>
@@ -440,19 +532,29 @@ const Dashboard = () => {
 
         {/* Urgent Tasks */}
         <div className="rounded-xl border border-gray-200/80 bg-white shadow-sm overflow-hidden flex flex-col">
-          <div className="border-b border-gray-100 px-5 py-3.5 bg-gray-50/50">
+          <div className="border-b border-gray-100 px-5 py-3.5 bg-gray-50/50 flex items-center justify-between">
             <h3 className="flex items-center text-xs font-bold uppercase tracking-wider text-gray-700">
               <AlertCircle className="mr-2 h-4 w-4 text-red-500" />
               Urgent Tasks ({data.widgets?.urgentTasks?.length || 0})
             </h3>
+            <button 
+              onClick={() => navigate('/tasks')}
+              className="text-[11px] font-semibold text-red-600 hover:text-red-700 flex items-center gap-0.5 cursor-pointer transition-colors"
+            >
+              View all <ArrowUpRight className="w-3 h-3" />
+            </button>
           </div>
           <div className="p-4 flex-1">
             {data.widgets?.urgentTasks?.length > 0 ? (
-              <ul className="space-y-3">
+              <ul className="space-y-2">
                 {data.widgets.urgentTasks.slice(0, 5).map((task, idx) => (
-                  <li key={idx} className="flex items-start justify-between text-xs border-b border-gray-50 pb-2.5 last:border-0 last:pb-0">
+                  <li 
+                    key={idx} 
+                    onClick={() => navigate('/tasks')}
+                    className="flex items-start justify-between text-xs border-b border-gray-50 pb-2.5 last:border-0 last:pb-0 p-1.5 -mx-1.5 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
+                  >
                     <div className="pr-2">
-                      <p className="font-bold text-gray-900 line-clamp-1">{task.title}</p>
+                      <p className="font-bold text-gray-900 line-clamp-1 hover:text-red-600 transition-colors">{task.title}</p>
                       <p className="text-gray-400 mt-0.5">
                         {task.assignee?.name || 'Unassigned'} • Due {formatDate(task.deadline)}
                       </p>
@@ -471,11 +573,17 @@ const Dashboard = () => {
 
         {/* Recent Activity Audit */}
         <div className="rounded-xl border border-gray-200/80 bg-white shadow-sm overflow-hidden flex flex-col">
-          <div className="border-b border-gray-100 px-5 py-3.5 bg-gray-50/50">
+          <div className="border-b border-gray-100 px-5 py-3.5 bg-gray-50/50 flex items-center justify-between">
             <h3 className="flex items-center text-xs font-bold uppercase tracking-wider text-gray-700">
               <Activity className="mr-2 h-4 w-4 text-blue-500" />
               Live Activity Feed
             </h3>
+            <button 
+              onClick={() => navigate('/activity-logs')}
+              className="text-[11px] font-semibold text-blue-600 hover:text-blue-700 flex items-center gap-0.5 cursor-pointer transition-colors"
+            >
+              View logs <ArrowUpRight className="w-3 h-3" />
+            </button>
           </div>
           <div className="p-4 flex-1">
             {data.widgets?.recentActivity?.length > 0 ? (
