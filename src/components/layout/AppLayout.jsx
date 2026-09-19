@@ -8,7 +8,23 @@ import ErrorBoundary from '../ui/ErrorBoundary';
 export default function AppLayout() {
   const { user, isAuthenticated, loading } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+    try {
+      return localStorage.getItem('sidebar_collapsed') === 'true';
+    } catch {
+      return false;
+    }
+  });
+
+  const handleToggleSidebar = () => {
+    setSidebarCollapsed(prev => {
+      const next = !prev;
+      try {
+        localStorage.setItem('sidebar_collapsed', String(next));
+      } catch {}
+      return next;
+    });
+  };
 
   if (loading) {
     return (
@@ -28,7 +44,7 @@ export default function AppLayout() {
     <div className="flex h-screen overflow-hidden bg-[#F8F8F8] font-sans">
       {/* Desktop sidebar */}
       <div className="hidden md:block h-full flex-shrink-0">
-        <Sidebar collapsed={sidebarCollapsed} onToggle={() => setSidebarCollapsed(!sidebarCollapsed)} />
+        <Sidebar collapsed={sidebarCollapsed} onToggle={handleToggleSidebar} />
       </div>
 
       {/* Mobile sidebar */}

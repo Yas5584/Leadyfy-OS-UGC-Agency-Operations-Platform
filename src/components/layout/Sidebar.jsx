@@ -74,6 +74,23 @@ export default function Sidebar({ collapsed, onToggle }) {
 
   const initials = (user.name || 'U').split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
 
+  const navRef = React.useRef(null);
+
+  React.useEffect(() => {
+    try {
+      const savedScroll = sessionStorage.getItem('sidebar_scroll');
+      if (savedScroll && navRef.current) {
+        navRef.current.scrollTop = Number(savedScroll);
+      }
+    } catch {}
+  }, []);
+
+  const handleNavScroll = (e) => {
+    try {
+      sessionStorage.setItem('sidebar_scroll', String(e.currentTarget.scrollTop));
+    } catch {}
+  };
+
   return (
     <div className={`${collapsed ? 'w-[68px]' : 'w-[240px]'} bg-[#111111] text-gray-400 flex flex-col h-full transition-all duration-200 select-none`}>
       {/* Logo */}
@@ -99,7 +116,7 @@ export default function Sidebar({ collapsed, onToggle }) {
       </div>
 
       {/* Navigation */}
-      <div className="flex-1 overflow-y-auto py-3 scrollbar-dark">
+      <div ref={navRef} onScroll={handleNavScroll} className="flex-1 overflow-y-auto py-3 scrollbar-dark">
         {navGroups.map((group, i) => {
           const visibleItems = group.items.filter(item => canAccess(role, item.resource));
           if (visibleItems.length === 0) return null;

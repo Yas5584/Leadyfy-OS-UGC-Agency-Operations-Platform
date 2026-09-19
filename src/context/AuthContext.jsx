@@ -4,8 +4,20 @@ import api from '../services/api';
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState(() => {
+    try {
+      const stored = localStorage.getItem('user');
+      return stored ? JSON.parse(stored) : null;
+    } catch {
+      return null;
+    }
+  });
+
+  const [loading, setLoading] = useState(() => {
+    const token = localStorage.getItem('token');
+    const stored = localStorage.getItem('user');
+    return !!token && !stored;
+  });
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -15,10 +27,17 @@ export function AuthProvider({ children }) {
           const res = await api.get('/auth/me');
           const userData = res.data || res.user || res;
           setUser(userData);
+          localStorage.setItem('user', JSON.stringify(userData));
         } catch (error) {
-          localStorage.removeItem('token');
-          setUser(null);
+          if (error?.message === 'Unauthorized' || error?.status === 401 || error?.response?.status === 401) {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            setUser(null);
+          }
         }
+      } else {
+        localStorage.removeItem('user');
+        setUser(null);
       }
       setLoading(false);
     };
@@ -33,17 +52,25 @@ export function AuthProvider({ children }) {
     if (token) {
       localStorage.setItem('token', token);
     }
+    if (userData) {
+      localStorage.setItem('user', JSON.stringify(userData));
+    }
     setUser(userData);
     return { token, user: userData };
   };
 
   const logout = () => {
     localStorage.removeItem('token');
+    localStorage.removeItem('user');
     setUser(null);
   };
 
   const updateUser = (updatedData) => {
-    setUser(prev => ({ ...prev, ...updatedData }));
+    setUser(prev => {
+      const updated = { ...prev, ...updatedData };
+      localStorage.setItem('user', JSON.stringify(updated));
+      return updated;
+    });
   };
 
   const hasRole = (role) => user?.role === role;
